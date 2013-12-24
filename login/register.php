@@ -1,6 +1,14 @@
 <?php 
-
-    require("common.php"); 
+    require("common.php");
+	require('../inc/config.php');
+	if(empty($_SESSION['user'])) 
+    { 
+        header("Location: index.php"); 
+        die(""); 
+    }
+	if (!in_array(strtolower($_SESSION['user']['username']), $config['SUPER_USERS'])) {
+    exit('Nupe');
+	}
     if(!empty($_POST)) 
     { 
         if(empty($_POST['username'])) 

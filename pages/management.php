@@ -3,7 +3,13 @@
    include '../inc/globalvariables.php';
    include '../inc/functions.php';
    include '../login/common.php';
+   if(empty($_SESSION['user'])) 
+	{ 
+		header("Location: index.php"); 
+		die(""); 
+	} 
 ?>
+
     <datalist id="command_presets"></datalist>
     <section id="forms">
         <div class="row">

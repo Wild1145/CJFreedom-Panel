@@ -14,7 +14,7 @@ if(empty($_SESSION['user']))
 
 if (isset($_REQUEST['action'])) {
     if ($_REQUEST['action'] == "delete" AND isset($_REQUEST['usernametodelete'])) {
-    	$username = sanitize($_REQUEST['usernametodelete']);
+    	$username = $_REQUEST['usernametodelete'];
         if (!in_array(strtolower($_REQUEST['usernametodelete']), $config['SUPER_USERS'])) {
             $query= "DELETE FROM users WHERE username='" . $username . "'";
             echo "User Deleted";
