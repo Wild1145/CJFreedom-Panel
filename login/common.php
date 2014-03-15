@@ -3,10 +3,6 @@
        include '../inc/config.php'; 
     }
     // These variables define the connection information for your MySQL database 
-    /*$username = "cjfreedom"; 
-    $password = "swaW5b2f"; 
-    $host = "localhost"; 
-    $dbname = "cjfreedom"; */
 	$username = $config['DATABASE_USERNAME'];
 	$password = $config['DATABASE_PASSWORD'];
 	$host = $config['DATABASE_IP'];
