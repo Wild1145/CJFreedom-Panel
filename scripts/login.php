@@ -1,28 +1,22 @@
 <?php
-if (isset($_POST['username']) AND isset($_POST['password'])) {
-	$status = 1;
-	
-} else {
-	if (!isset($_POST['username'])) {
-		$status = 3;
-	}
-	if (!isset($_POST['password'])) {
-		$status = 4;
-	}
+include '../inc/config.php';
+include '../inc/functions.php';
+
+
+$username = sanitize($_POST['username']);
+$password = $_POST['password'];
+
+if (isset($_POST['remember'])) {
+    $logins['user'] = $username;
+    $result = sqlQuery('SELECT salt,password FROM cjf_panel_users WHERE username="' . $username . '"');
+    while ($row = mysqli_fetch_array($result)) {
+        $salt = $row['salt'];
+        $passwordStored = $row['password'];
+    }
+    $logins['pass'] = base64_encode(encrypt(base64_encode($password), $salt . $passwordStored));
+    $cookieval = json_encode($logins);
+    $cookieval = base64_encode($cookieval);
+    setcookie("panel_auto", $cookieval, time()+31536000, '/');
 }
-
-//Output final result
-echo $status;
-
-
-/*
-Status messages:
-1: User and Pass provided
-2: User and Pass both missing from request
-3: Username not submitted
-4: Password Not Submitted
-5: Error
-6: Username or Password is wrong
-7: Authentication successful
-*/
+echo login($username, $password);
 ?>
