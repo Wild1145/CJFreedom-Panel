@@ -1,13 +1,16 @@
 <?php
-ini_set('display_errors',1);
-ini_set('display_startup_errors',1);
-error_reporting(-1);
 include '../inc/config.php';
+include '../inc/globalvariables.php';
 include '../inc/functions.php';
-include '../inc/sessions.php';
+include '../classes/Net/SSH2.php';
+include '../classes/yaml_parse/sfYaml.php';
 header('Content-type: application/json');
-header("Access-Control-Allow-Origin: *");
-
+$sshup = @fsockopen($config['SSH_IP'], 22, $errno, $errstr, "1");
+if ($sshup) {
+$ssh = new Net_SSH2($config['SSH_IP']);
+if (!$ssh->login($config['SSH_USERNAME'], $config['SSH_PASSWORD'])) {
+    exit('Login Failed Contact TheCJGCJG ASAP');
+}
 function percent($num_amount, $num_total)
 {
     $count1 = $num_amount / $num_total;
@@ -15,83 +18,87 @@ function percent($num_amount, $num_total)
     $count  = number_format($count2, 0);
     return $count;
 }
-function cpuUsage($ssh) {
-    $cpuusage = $ssh->exec("top -b -n 5 -d.2 | grep \"Cpu\" | tail -n1 | awk '{print($2)}' | cut -d'%' -f 1");
-    $cpuusage = trim(preg_replace('/\s\s+/', ' ', $cpuusage));
-    return $cpuusage;
-}
-
-function countReports() {
-    $query = sqlQuery('SELECT COUNT(reporter) FROM reports');
-    while($row = mysqli_fetch_array($query)) {
-        $count = $row['COUNT(reporter)'];
-    }
-    return $count;
-}
-function countOpenReports() {
-    $query = sqlQuery('SELECT COUNT(reporter) FROM reports WHERE status="open"');
-    while($row = mysqli_fetch_array($query)) {
-        $count = $row['COUNT(reporter)'];
-    }
-    return $count;
-}
-
-function countBans() {
-    $query = sqlQuery('SELECT COUNT(time) FROM cjf_bans');
-    while($row = mysqli_fetch_array($query)) {
-        $count = $row['COUNT(time)'];
-    }
-    return $count;
-}
-
-
-function totalMemory($ssh) {
-    $total        = $ssh->exec('cat /proc/meminfo | grep \'MemTotal\'');
-    $output       = str_replace('MemTotal: ', '', $total);
-    $output       = str_replace(' kB', '', $output);
-    $output       = ($output / 1024 / 1024);
-    $totalmemory  = round($output, 2);
-    return $totalmemory;
-}
-
-
-function freeMemory($ssh) {
-    $free = $ssh->exec('cat /proc/meminfo | grep \'MemFree\'');
-    $free = str_replace('MemFree: ', '', $free);
-    $free = str_replace(' kB', '', $free);
-    $free = ($free / 1024 / 1024);
-    
-    $cached = $ssh->exec('cat /proc/meminfo | grep \'Cached\'');
-    $cached = str_replace('Cached: ', '', $cached);
-    $cached = str_replace(' kB', '', $cached);
-    $cached = ($cached / 1024 / 1024);
-    
-    $actualFree = $free + $cached;
-    return round($actualFree, 2);
-}
-
-function usedMemory($ssh) {
-    return totalMemory($ssh) - freeMemory($ssh);
-}
-
-?>
-<?php
-if (getTimeDifference('stats', '3') == true) {
-    $ssh = initSSH();
-    $output ='{"cpuUsage":' . cpuUsage($ssh) . ',
-"totalMemory":' . totalMemory($ssh) . ', 
-"usedMemory":"' . usedMemory($ssh) . '",
-"freeMemory":"' . freeMemory($ssh) . '",
-"memoryPercent":"' . percent(usedMemory($ssh), totalMemory($ssh)) . '",
-"totalReports":' . countReports() . ',
-"totalBans":' . countBans() . ',
-"openReports":' . countOpenReports() . '}';
-    addToSQLCache('stats', $output);
-    echo $output;
+$cache_file = "logging/userlist_cache.yml";
+if (file_exists($cache_file) && (filemtime($cache_file) > (time() - 60 * 5))) {
+    // Cache file is less than five minutes old. 
+    // Don't bother refreshing, just use the file as-is.
+    $file = file_get_contents($cache_file);
 } else {
-    echo retrieveSQLCache('stats');
+    // Our cache is out-of-date, so load the data from our remote server,
+    // and also save it over our cache for next time.
+    $file = $ssh->exec("cat " . $config['SERVER_LOCATION'] . "/plugins/CJFreedomMod/userlist.yml");
+    file_put_contents($cache_file, $file, LOCK_EX);
+}
+$userlist = yaml_parse($file);
+$unique = count($userlist);
+
+
+date_default_timezone_set('Europe/London');
+if ($config['SERVER_IP'] and $config['SERVER_PORT']) {
+    $serverup = @fsockopen($config['SERVER_IP'], $config['SERVER_PORT'], $errno, $errstr, "1");
+}
+if ($serverup) {
+    $status = "Online";
+} else {
+    $status = "Offline";
 }
 
+	$cpuusage      = $ssh->exec("ps aux|awk 'NR > 0 { s +=$3 }; END {print s}'");
+	$cpuusage      = $cpuusage / 2;
+	$bytesize      = $ssh->exec("wc -c < " . $config['SERVER_LOCATION'] . "/server.log");
+	$mbsize        = ($bytesize / 1024 / 1024);
+	$total         = $ssh->exec('cat /proc/meminfo | grep \'MemTotal\'');
+	$output        = str_replace('MemTotal: ', '', $total);
+	$output        = str_replace(' kB', '', $output);
+	$output        = ($output / 1024 / 1024);
+	$totalmemory   = round($output, 2);
+	$free          = $ssh->exec('cat /proc/meminfo | grep \'MemFree\'');
+	$output        = str_replace('MemFree: ', '', $free);
+	$output        = str_replace(' kB', '', $output);
+	$output        = ($output / 1024 / 1024);
+	$freememory    = round($output, 2);
+	$total         = $ssh->exec('cat /proc/meminfo | grep \'MemTotal\'');
+	$free          = $ssh->exec('cat /proc/meminfo | grep \'MemFree\'');
+	$total         = str_replace('MemTotal: ', '', $total);
+	$total         = str_replace(' kB', '', $total);
+	$total         = ($total / 1024 / 1024);
+	$total         = round($total, 2);
+	$free          = str_replace('MemFree: ', '', $free);
+	$free          = str_replace(' kB', '', $free);
+	$free          = ($free / 1024 / 1024);
+	$free          = round($free, 2);
+	$freeused      = round($free, 2);
+	$total         = $total * 100;
+	$freeused      = $freeused * 100;
+	$memorypercent = percent($total, $freeused);
+	$memorypercent = 100 / $memorypercent * 100;
+	$memorypercent = 100 - $memorypercent;
+	$memorypercent = round($memorypercent, 0);
+	$free          = $ssh->exec('free');
+	$free          = (string) trim($free);
+	$free_arr      = explode("\n", $free);
+	$mem           = explode(" ", $free_arr[1]);
+	$mem           = array_filter($mem);
+	$mem           = array_merge($mem);
+	$memory_usage  = $mem[2] / $mem[1] * 100;
+	$memory_usage  = round($memory_usage);
+} else {
+	$memory_usage = "0";
+	$freememory = "0";
+	$memorypercent = "0";
+	$mbsize = "0";
+	$totalmemory = "0";
+	$unique = 0;
+	$status = "Offline";
+}
 ?>
-
+  {"memoryusage":"<?php echo $memory_usage;?>",
+  "freememory":"<?php echo $freememory;?>", 
+  "usedmemory":"<?php echo $memorypercent; ?>",
+  "totalmemory":"<?php echo $totalmemory;?>",
+  "logsize":"<?php echo round($mbsize, 2); ?>",
+  "cpuusage":"<?php echo round(($cpuusage / 1.25), 0); ?>",
+  "uniquePlayers":"<?php echo $unique; ?>",
+  "time":"<?php echo date("H:i:s"); ?>",
+  "status":"<?php echo $status; ?>"}
 

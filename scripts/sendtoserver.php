@@ -1,105 +1,172 @@
 <?php
 include '../inc/config.php';
+include '../inc/globalvariables.php';
 include '../inc/functions.php';
-include '../inc/sessions.php';
-
-if(!isset($_GET['action'])) {
-    die('Incorrect parameters');
-}
-$action = $_GET['action'];
-$ssh = initSSH();
-
-switch ($action) {
-    case "resetmap":
-        if ($_SESSION['user']['rank'] < 3) {
-            die('You must be a Senior Admin.');
-        }
-        if (!isset($_GET['mapname'])) {
-            die('Map name not defined');
-        }
-		if (isset($_GET['instant'])) {
-			$ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_resetmap.sh instant ' . escapeshellarg($_GET['mapname']) . ' &');
-		} else {
-			$ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . '/home/CJFreedom/bin/panel_scripts/server_resetmap.sh ' . escapeshellarg($_GET['mapname']) . ' &');
+include 'logging/log.php';
+ini_set('max_execution_time', 250000);
+set_time_limit(0);
+include '../classes/Net/SSH2.php';
+    require("../login/common.php"); 
+    if(empty($_SESSION['user'])) 
+    { 
+        include 'pages/login.php';
+        die(""); 
+    }
+if (isset($_REQUEST['cmd'])) {
+$actiontolog = "cmd: " . $_REQUEST['cmd'];
+logToDb($_SESSION['user']['username'], $actiontolog, $_SERVER['REMOTE_ADDR']);
+} else {
+	if (isset($_REQUEST['mapname'])) {
+	$actiontolog = "map: " . $_REQUEST['mapname'];
+	logToDb($_SESSION['user']['username'], $actiontolog, $_SERVER['REMOTE_ADDR']);
+	} else {
+		if(isset($_REQUEST['chatmessage'])) {
+		$actiontolog = "Chat: " . $_REQUEST['chatmessage'];
+		logToDb($_SESSION['user']['username'], $actiontolog, $_SERVER['REMOTE_ADDR']);
 		}
-        echo "Map is resetting - This may take a few moments";
-        logAction("Map Reset to " . $_GET['mapname']);
-        break;
-    case "wipeflatlands":
-        if ($_SESSION['user']['rank'] < 3) {
-            die('You must be a Senior Admin.');
-        }
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_wipeflatlands.sh &');
-        echo "The flatlands are being wiped - Please wait a few moments";
-        logAction('Flatlands Wiped');
-        break;
-    case "start":
-        if ($_SESSION['user']['rank'] < 3) {
-            die('You must be a Senior Admin.');
-        }
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_start.sh &');
-        echo "Server start has been attempted";
-        logAction("Server Started");
-        break;
-    case "restart":
-        if ($_SESSION['user']['rank'] < 3) {
-            die('You must be a Senior Admin.');
-        }
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_restart.sh &');
-        logAction("Server Restarted");
-        echo "Server Restarted";
-        break;
-    case "stop":
-        if ($_SESSION['user']['rank'] < 3) {
-            die('You must be a Senior Admin.');
-        }
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_stop.sh &');
-        logAction("Server Stopped");
-        echo "Server stopped";
-        break;
-    case "cmd":
-        if ($_SESSION['user']['rank'] < 2) {
-            die('You must be a Telnet Admin.');
-        }
-        if (!isset($_GET['cmd'])) {
-            die('Command has not been entered.');
-        }
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_cmd.sh ' . escapeshellarg($_GET['cmd']) . ' &');
-        echo "Command: " . $_GET['cmd'] . " Sent.";
-        logAction("Command: " . $_GET['cmd']);
-        break;
-    case "chat":
-        if ($_SESSION['user']['rank'] < 2) {
-            die('You must be a Telnet Admin.');
-        }
-        if (!isset($_GET['message'])) {
-            die('Command has not been entered.');
-        }
-        $chatmessage = $_GET['message'];
-        $username = $_SESSION['user']['username'];
-        $chatWithUsername = str_replace("{username}", $username, $config['CHAT_INTERFACE_OPTIONS']);
-        $chatComplete = str_replace("{chatmessage}", $chatmessage, $chatWithUsername);
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_cmd.sh rawsay ' . $chatComplete . ' &');
-        echo "Sent message: " . $chatmessage;
-        logAction("Chat: " . $_GET['message']);
-        break;
-    case "adminchat":
-        if ($_SESSION['user']['rank'] < 2) {
-            die('You must be a Telnet Admin.');
-        }
-        if (!isset($_GET['message'])) {
-            die('Command has not been entered.');
-        }
-        $chatmessage = $_GET['message'];
-        $chatwithusername = str_replace("{username}", $_SESSION['user']['username'], $config['ADMIN_CHAT_INTERFACE_OPTIONS']);
-		$chatcomplete = str_replace("{chatmessage}", $chatmessage, $chatwithusername);
-        $ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_cmd.sh consoleo ' . $chatcomplete . ' &');
-        echo "Sent message" . $chatmessage;
-        logAction("Adminchat: " . $_GET['message']);
-        break;
-    default:
-       die('Incorrect Parameters - If this is not expected please contact thecjgcjg.');
-       break;
+		logToDb($_SESSION['user']['username'], $_REQUEST['action'], $_SERVER['REMOTE_ADDR']);
+	}
 }
 
+//Connect to SSH
+$ssh = new Net_SSH2($config['SSH_IP']);
+if (!$ssh->login($config['SSH_USERNAME'], $config['SSH_PASSWORD'])) {
+    die('Cannot login to SSH');
+}
+
+//Start Server
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "start") {
+		if (strpos($ssh->exec('server start'), "already") !== false) {
+			echo "Server is already running, if you cannot connect try using the kill button.";
+		} else {
+			echo "Server Started.";        
+		}
+	}
+}
+//Stop Server
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "restart") {
+		$ssh->exec('server stopped');
+		echo "Server stopped.";
+	}
+}
+//Restart Server
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "restart") {
+		$ssh->exec('server cmd say Server is Restarting');
+		$ssh->exec('server restart');
+		echo "Server restarted. If you are unable to connect try again.";
+	}
+}
+//Kill Server
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "kill") {
+		$ssh->exec("su -c 'pkill -sigkill java' - senior");
+        $ssh->exec("su -c 'screen -S minecraft -X quit' - senior");
+		$ssh->exec("server start");
+		echo "Server forcefully shut down and restarted.";
+	}
+}
+
+//Commands
+if (isset($_REQUEST['action']) AND isset($_REQUEST['cmd'])) {
+	if ($_REQUEST['action'] == "cmd") {
+		$cmd = $_REQUEST['cmd'];
+		if (!in_array($cmd, $config['FORBIDDEN_COMMANDS'])) {
+			$ssh->exec("server cmd $cmd");
+			echo "Command: $cmd sent successfully";
+		} else {
+			if (in_array(strtolower($_SESSION['user']['username']),$config['SUPER_USERS'])) {
+				$ssh->exec("server cmd $cmd");
+				echo "Command: $cmd sent successfully";
+			} else {
+			echo "This is a forbidden command";
+			}		
+		}
+
+	}
+}
+
+// Map reset
+if (isset($_REQUEST['action']) AND isset($_REQUEST['mapname'])) {
+	if ($_REQUEST['action'] == "reset") {
+		$mapresetname = strtolower($_REQUEST['mapname']);
+		$ssh->exec('server cmd say **§dRESETTING MAP TO' . strtoupper($mapresetname) . '**');
+        $ssh->exec("server cmd say **MAP IS EXTRACTING - EXPECT LAG**");
+        $ssh->exec('tar -zxf ' . $config['MAP_LOCATION'] . '' . $mapresetname . '.tar.gz -C /tmp');
+        $ssh->exec("server cmd say **MAP IS RESETTING**");
+		$ssh->exec('server stop');
+		$ssh->exec("su -c 'pkill -sigkill java' - senior");
+		$ssh->exec("su -c 'screen -S minecraft -X quit' - senior");
+        $ssh->exec("rm " . $config['SERVER_LOCATION'] . "plugins/Essentials/spawn.yml");
+		$ssh->exec("rm " . $config['SERVER_LOCATION'] . "plugins/Essentials/warps/*");
+		$ssh->exec("rm -R " . $config['SERVER_LOCATION'] . "worlds/world");
+        $ssh->exec('mv /tmp/mcserver/worlds/' . $mapresetname . '/ ' . $config['SERVER_LOCATION'] . 'worlds');
+        $ssh->exec('mv ' . $config['SERVER_LOCATION'] . 'worlds/' . $mapresetname . ' ' . $config['SERVER_LOCATION'] . 'worlds/world');
+		$ssh->exec("chown -R senior /mcserver");
+        $ssh->exec("rm -rf /tmp/mcserver/");
+		$ssh->exec("server start");
+		echo "Reset map to: \"$mapresetname\"";
+	}
+}
+
+// Wipe flatlands
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "wipeflatlands") {
+		$ssh->exec('server stop');
+        $ssh->exec("su -c 'pkill -sigkill java' - senior");
+        $ssh->exec("su -c 'screen -S minecraft -X quit' - senior");
+		$ssh->exec("chown -R senior /mcserver");
+		$ssh->exec("rm " . $config['SERVER_LOCATION'] . "plugins/Essentials/spawn.yml");
+		$ssh->exec("rm " . $config['SERVER_LOCATION'] . "plugins/Essentials/warps/*");
+		$ssh->exec("rm -R " . $config['SERVER_LOCATION'] . "worlds/flatlands");
+		$ssh->exec("chown -R senior /mcserver");
+		$ssh->exec("server start");
+		echo "Successfully reset flatlands";
+	}
+}
+
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "deletelogs") {
+		$ssh->exec('server stop');
+        $ssh->exec("su -c 'pkill -sigkill java' - senior");
+        $ssh->exec("su -c 'screen -S minecraft -X quit' - senior");
+		$ssh->exec("chown -R senior /mcserver");
+		$ssh->exec("rm " . $config['SERVER_LOCATION'] . "plugins/Essentials/spawn.yml");
+		$ssh->exec("rm " . $config['SERVER_LOCATION'] . "plugins/Essentials/warps/*");
+		$ssh->exec("rm " . $config['SERVER_LOCATION'] . "server.log");
+		$ssh->exec("server start");
+		echo "Logs deleted.";
+	}
+}
+
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "chat") {
+            $chatmessage = $_REQUEST['chatmessage'];
+            $chatmessage = str_replace("&", "", $chatmessage);
+			$chatwithusername = str_replace("{username}", $_SESSION['user']['username'], $config['CHAT_INTERFACE_OPTIONS']);
+			$chatcomplete = str_replace("{chatmessage}", $chatmessage, $chatwithusername);
+			$ssh->exec("server cmd rawsay $chatcomplete");
+            echo "yes";
+	}
+}
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "adminchat") {
+            $chatmessage = $_REQUEST['chatmessage'];
+            $chatmessage = str_replace("&", "", $chatmessage);
+			$chatwithusername = str_replace("{username}", $_SESSION['user']['username'], $config['ADMIN_CHAT_INTERFACE_OPTIONS']);
+			$chatcomplete = str_replace("{chatmessage}", $chatmessage, $chatwithusername);
+			$ssh->exec("server cmd consoleo $chatcomplete");
+            echo "done";
+	}
+}
+if (isset($_REQUEST['action'])) {
+	if ($_REQUEST['action'] == "clearuserdata") {
+		$ssh->exec('server say **CLEARING ESSENTIALS USERDATA**');
+		$ssh->exec("rm -rf " . $config['SERVER_LOCATION'] . "plugins/Essentials/userdata/*");
+		$ssh->exec('server cmd reload');
+		echo "Done";
+	}
+}
 ?>

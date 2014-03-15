@@ -1,197 +1,177 @@
-function changeReport(changeTo, id, reportStats) {
-    $.get("scripts/changereportstatus?action=" + changeTo + "&id=" + id + '');
-    $.get( "pages/reports_" + reportStats + '', function( data ) {
-      document.getElementById('reportPage').innerHTML=data;
+function showDiv(divurl) {
+    $("#footer").fadeOut('fast');
+    $("#pagecontent").fadeOut('fast', function () {
+        window.scrollTo(1, 1);
+        loadingImage = localStorage.getItem('loadingImage');
+        changeFavicon(loadingImage);
+        document.getElementById("pagecontent").innerHTML = '<center><img width="66" id="loadingImage" height="66" title="" src="' + loadingImage + '" alt=""></center>';
+        $("#pagecontent").fadeIn('fast');
     });
-}
-function closeAllReports() {
-    $.get("scripts/changereportstatus?action=closeall&id=0");
-    $.get( "pages/reports_all" , function( data ) {
-      document.getElementById('reportPage').innerHTML=data;
-    });
-}
-
-function sendToServer(query) {
-    $.get( "scripts/sendtoserver?" + query, function( data ) {
-        newAlert('Operation Sent', data);
-    });
-}
-
-function updateStats() {
-    if(document.getElementById('cpuUsage')) {
-        $.getJSON( "scripts/stats", function( stats ) {
-          document.getElementById('cpuUsage').innerHTML=stats.cpuUsage;
-          document.getElementById('ramUsage').innerHTML=stats.memoryPercent;
-          document.getElementById('freeMemory').innerHTML=stats.freeMemory;
-          document.getElementById('usedMemory').innerHTML=stats.usedMemory;
-          document.getElementById('totalMemory').innerHTML=stats.totalMemory;
-          document.getElementById('totalReports').innerHTML=stats.totalReports;
-          document.getElementById('openReports').innerHTML=stats.openReports;
-          document.getElementById('totalBans').innerHTML=stats.totalBans;
-        });
-    }
-}
-function saveStats() {
-        $.getJSON( "scripts/stats", function( stats ) {
-          localStorage.setItem('stats', JSON.stringify(stats));
-        });
-}
-
-function restorePreviousStats() {
-    if (localStorage.getItem("stats") === null) {
-      saveStats();
+    var xmlhttp;
+    if (window.XMLHttpRequest) {
+        xmlhttp = new XMLHttpRequest();
     } else {
-        var stats = JSON.parse(localStorage.getItem('stats'));
-        document.getElementById('cpuUsage').innerHTML=stats.cpuUsage;
-        document.getElementById('ramUsage').innerHTML=stats.memoryPercent;
-        document.getElementById('freeMemory').innerHTML=stats.freeMemory;
-        document.getElementById('usedMemory').innerHTML=stats.usedMemory;
-        document.getElementById('totalMemory').innerHTML=stats.totalMemory;
-        document.getElementById('totalReports').innerHTML=stats.totalReports;
-        document.getElementById('openReports').innerHTML=stats.openReports;
-        document.getElementById('totalBans').innerHTML=stats.totalBans;
+        xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
     }
-}
+    xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            $("#pagecontent").fadeOut('fast', function () {
+                document.getElementById("pagecontent").innerHTML = xmlhttp.responseText;
+                changeFavicon('https://www.thecjgcjg.com/favicon.ico');
+                $("#pagecontent").fadeIn('fast');
+                $("#footer").fadeIn('slow');
+            });
 
-function clearAlerts() {
-    document.getElementById('alertsBox').innerHTML = '<li id="noAlerts"><a>No Alerts</a></li>';
-    document.getElementById('alertsNumber').innerHTML = '0';
-    saveAlertStatus();
-}
-
-function saveAlertStatus() {
-    localStorage.setItem('alertsBox', document.getElementById('alertsBox').innerHTML);
-    localStorage.setItem('alertsNumber', document.getElementById('alertsNumber').innerHTML);
-}
-
-function loadNavbarPrev() {
-    if (document.getElementById('alertsBox')) {
-        if (localStorage.getItem("alertsBox") === null) {
-            console.log('Someones new!');
-        } else {
-            document.getElementById('alertsBox').innerHTML = localStorage.getItem("alertsBox");
-        }
-        if (localStorage.getItem('alertsNumber') === null) {
-            console.log('Again new.');
-        } else {
-            document.getElementById('alertsNumber').innerHTML = localStorage.getItem("alertsNumber");
         }
     }
+    xmlhttp.open("GET", divurl, true);
+    xmlhttp.send();
 }
-$( document ).ready(function() {
-  loadNavbarPrev();
-});
-function newAlert(alertValue, subtext) {
-    var clearText = '<li><a onclick="clearAlerts();">Clear Alerts</a></li><li class="divider"></li>';
-    var alertsNumberSpan = document.getElementById('alertsNumber');
-    var alertNumber = parseInt(alertsNumberSpan.innerHTML) + 1;
-    alertsNumberSpan.innerHTML = alertNumber;
-    document.getElementById('noAlerts').innerHTML = '';
-    if (!alertType) {
-        var alertType = 'default';
-    }
-    var oldAlertsBox = document.getElementById('alertsBox').innerHTML;
-    var oldAlertsBox = oldAlertsBox.replace(clearText, '');
-    document.getElementById('alertsBox').innerHTML = clearText + '<li><a>' + alertValue + '<br /><small>' + subtext + '</small></a></li><li class="divider"></li>' + oldAlertsBox;
-    saveAlertStatus();
-    if (getSetting('chromeNotify')) {
-        chromeNotify(alertValue, subtext);
-    }
-    if (getSetting('alertNoises')) {
-        var clickSound = new Audio('ding.mp3');
-        clickSound.play();
-    }
+
+function getNotifyPermissions() {
+    window.webkitNotifications.requestPermission();
+}
+
+function notify(notificationText) {
+    var isWebkit = 'webkitRequestAnimationFrame' in window;
+    if (navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i)) {
+            //Do nothing
+        } else {
+            if (isWebkit) {
+                var havePermission = window.webkitNotifications.checkPermission();
+                if (havePermission == 0) {
+                    // 0 is PERMISSION_ALLOWED - MUST REMEMBER THIS
+                    var notification = window.webkitNotifications.createNotification('https://www.thecjgcjg.com/favicon.ico', 'CJFreedom Panel', notificationText);
+                } else {
+                    document.getElementById('notifications').innerHTML = "<a onclick=\"getNotifyPermissions();\">Click here to enable Chrome Notifications</a>";
+                }
+            }
+        }
         $("#notifypanel").slideUp(200, function () {
-            document.getElementById('notifypanelbody').innerHTML = subtext;
+            document.getElementById('notifypanelbody').innerHTML = notificationText;
             $("#notifypanel").slideDown(200)
+            if (isWebkit) {
+                notification.show();
+            }
         });
-        
-        $("#notifypanel").delay(5000).slideUp(200);
-        
-    saveAlertStatus();
-}
-
-function chromeNotify(alertText, subText) {
-    if (window.webkitNotifications.checkPermission() == 0) {
-        var notification = window.webkitNotifications.createNotification('https://www.thecjgcjg.com/cjfreedom/panel/images/chromenotification.png', alertText, subText);
-        notification.show();
-    } else {
-        window.webkitNotifications.requestPermission();
     }
-}
 
-function saveSettings() {
-    localStorage.setItem('settings_chromeNotify', document.getElementById('chromeNotify').checked);
-    localStorage.setItem('settings_alertNoises', document.getElementById('alertNoises').checked);
-    console.log('Settings Saved');
-}
 
-function getSetting(setting) {
-    if (localStorage.getItem('settings_' + setting) === null) {
-        return false;
-    } else {
-        if (localStorage.getItem('settings_' + setting) == "true") {
-            return true;
-        } else {
-            return false;
+    function sendServerOperation(url) {
+        var xmlhttp;
+        if (document.getElementById("notifications")) {
+            document.getElementById("notifications").innerHTML = '<img width="25" id="loadingImage" height="25" title="" src="' + loadingImage + '" alt="">';
         }
-    }
-}
-
-function loadSettings() {
-    document.getElementById('chromeNotify').checked = getSetting('chromeNotify');
-    document.getElementById('alertNoises').checked = getSetting('alertNoises');
-}
-
-function addUser() {
-    var username = document.getElementById('usernameCreate').value;
-    var password = document.getElementById('createPassword').value;
-    var rank = document.getElementById('newRank').value;
-    $.post( "sys_admin", { action: "createUser", username: username, password: password, rank: rank }, function( data ) {
-        newAlert('User Add', data);
-        location.reload();
-    });
-}
-
-function deleteUser() {
-    var username = document.getElementById('usernameDelete').value;
-    $.post( "sys_admin", { action: "deleteUser", username: username }, function( data ) {
-        newAlert('User Delete', data);
-        location.reload();
-    });
-}
-
-function AdminChangePassword() {
-    var username = document.getElementById('usernameChange').value;
-    var newPassword = document.getElementById('changePassword').value;
-    $.post( "sys_admin", { action: "deleteUser", username: username, password: newPassword }, function( data ) {
-        newAlert('User Password', data)
-        location.reload();
-    });
-}
-function changeUserPassword() {
-    var newPassword = document.getElementById('changePassword').value;
-    $.post( "user", { action: "changePassword", password: newPassword }, function( data ) {
-        newAlert('Password Changed', 'Completed');
-    });
-    newPassword='';
-}
-function deleteMap() {
-    var mapName = document.getElementById('deleteMapName').value;
-    $.post( "sys_admin", { action: "deleteMap", mapName: mapName }, function( data ) {
-        newAlert('Map Delete', data);
-        location.reload();
-    });
-}
-
-function resetMap(mapName) {
-    if (mapName == 'wipeflatlands') {
-        sendToServer('action=wipeflatlands');
-    } else {
-        if (document.getElementById('instant').checked) {
-            sendToServer("instant=true&action=resetmap&mapname=" + mapName);
+        if (window.XMLHttpRequest) {
+            xmlhttp = new XMLHttpRequest();
         } else {
-            sendToServer("action=resetmap&mapname=" + mapName);
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
         }
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                if (document.getElementById("notifications")) {
+                    document.getElementById("notifications").innerHTML = '';
+                }
+                notify(xmlhttp.responseText);
+            }
+        }
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
     }
-}
+
+    function sendServerOperationNoNotify(url) {
+        var xmlhttp;
+        if (document.getElementById("notifications")) {
+            document.getElementById("notifications").innerHTML = '<img width="25" id="loadingImage" height="25" title="" src="' + loadingImage + '" alt="">';
+        }
+        if (window.XMLHttpRequest) {
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                if (document.getElementById("notifications")) {
+                    document.getElementById("notifications").innerHTML = '';
+                }
+            }
+        }
+        xmlhttp.open("GET", url, true);
+        xmlhttp.send();
+    }
+
+    function deleteLog() {
+        notify('Resetting logs');
+        sendServerOperation('scripts/sendtoserver.php?action=deletelogs');
+    }
+
+    function resetMap() {
+        var mapname = document.getElementById("mapname").value;
+        notify('Resetting map to: ' + mapname + '.');
+        sendServerOperation('scripts/sendtoserver.php?action=reset&mapname=' + mapname + '');
+    }
+
+    function wipeFlatlands() {
+        notify('Wiping flatlands. This may take some time.');
+        sendServerOperation('scripts/sendtoserver.php?action=wipeflatlands');
+    }
+
+    function sendCommand() {
+        var cmd = document.getElementById("inputCommand").value;
+        document.getElementById("inputCommand").value = '';
+        sendServerOperation('scripts/sendtoserver.php?action=cmd&cmd=' + cmd + '');
+    }
+
+    function sendChat() {
+        var chatmessage = document.getElementById("inputChat").value;
+        document.getElementById("inputChat").value = '';
+        sendServerOperationNoNotify('scripts/sendtoserver.php?action=chat&chatmessage=' + chatmessage + '');
+    }
+
+    function sendAdminChat() {
+        var chatmessage = document.getElementById("inputAdminChat").value;
+        document.getElementById("inputAdminChat").value = '';
+        sendServerOperationNoNotify('scripts/sendtoserver.php?action=adminchat&chatmessage=' + chatmessage + '');
+    }
+
+    function changePassword() {
+        var chatmessage = document.getElementById("inputNewPassword").value;
+        document.getElementById("inputNewPassword").value = '';
+        sendServerOperation('login/edit_account.php?password=' + chatmessage + '&email=' + Math.random(1, 25000) + '@thecjgcjg.com');
+        showDiv('pages/ucp.php');
+    }
+
+    function getLogs() {
+        var xmlhttp;
+        if (window.XMLHttpRequest) {
+            xmlhttp = new XMLHttpRequest();
+        } else {
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                var log = xmlhttp.responseText;
+                if (document.getElementById("textarea")) {
+                    document.getElementsByName('num')[0].value = log;
+                    $('#textarea').scrollTop($('#textarea')[0].scrollHeight);
+                }
+                setTimeout("getLogs()", 800);
+            }
+        }
+        xmlhttp.open("GET", "scripts/getfilesandstats.php?action=logs", true);
+        xmlhttp.send();
+    }
+
+    document.head = document.head || document.getElementsByTagName('head')[0];
+
+    function changeFavicon(src) {
+        var link = document.createElement('link'),
+            oldLink = document.getElementById('dynamic-favicon');
+        link.id = 'dynamic-favicon';
+        link.rel = 'shortcut icon';
+        link.href = src;
+        if (oldLink) {
+            document.head.removeChild(oldLink);
+        }
+        document.head.appendChild(link);
+    }
