@@ -224,6 +224,7 @@ function updateMetric() {
 $config = $GLOBALS['config'];
 if ($config['METRIC'] == true) {      
     $url = 'https://www.thecjgcjg.com/metrics/cjfreedom_panel.php';
+    $fields_string = '';
     $fields = array(
                             'serversoftware' => urlencode($_SERVER['SERVER_SOFTWARE']),
                             'serverprotocol' => urlencode($_SERVER['SERVER_PROTOCOL']),
