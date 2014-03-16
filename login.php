@@ -14,9 +14,6 @@ if (isset($_GET['logout'])) {
 
 
 if (isset($_COOKIE['panel_auto'])) {
-    include 'inc/config.php';
-    include 'inc/functions.php';
-    
     $array = json_decode(base64_decode($_COOKIE['panel_auto']), true);
     $username = $array['user'];
     $result = sqlQuery('SELECT salt,password FROM cjf_panel_users WHERE username="' . $username . '"');
