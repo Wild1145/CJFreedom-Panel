@@ -1,4 +1,6 @@
 <?php
+include 'inc/config.php';
+include 'inc/functions.php';
 if (isset($_GET['logout'])) {
     session_start();
     $_SESSION = array();
@@ -27,10 +29,11 @@ if (isset($_COOKIE['panel_auto'])) {
         header("Location: https://www.thecjgcjg.com/cjfreedom/panel/index");
         die();
     } else {
-        //setcookie("panel_auto","",time()-6400,"/");
+        setcookie("panel_auto","",time()-6400,"/");
         echo "<script> console.log('Attmpted auto login. Failed'); </script>";
     }
 }
+updateMetric();
 ?>
 <!DOCTYPE html>
 <html>
