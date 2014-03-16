@@ -218,4 +218,27 @@ return '        <div class="col-lg-5">
                     </div>
                 </div>';
 }
+
+
+function updateMetric() {
+$config = $GLOBALS['config'];
+if ($config['METRIC'] == true) {      
+    $url = 'https://www.thecjgcjg.com/metrics/cjfreedom_panel.php';
+    $fields = array(
+                            'serversoftware' => urlencode($_SERVER['SERVER_SOFTWARE']),
+                            'serverprotocol' => urlencode($_SERVER['SERVER_PROTOCOL']),
+                            'clientuseragent' => urlencode($_SERVER['HTTP_USER_AGENT']),
+                            'https' => urlencode($_SERVER['HTTPS'])
+                    );
+
+    foreach($fields as $key=>$value) { $fields_string .= $key.'='.$value.'&'; }
+    rtrim($fields_string, '&');
+    $ch = curl_init();
+    curl_setopt($ch,CURLOPT_URL, $url);
+    curl_setopt($ch,CURLOPT_POST, count($fields));
+    curl_setopt($ch,CURLOPT_POSTFIELDS, $fields_string);
+    $result = curl_exec($ch);
+    curl_close($ch);
+    }
+}
 ?>

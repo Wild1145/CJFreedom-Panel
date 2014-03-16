@@ -25,4 +25,6 @@ $config['SCRIPTS_FOLDER'] = '/home/CJFreedom/bin/panel_scripts/';
 
 $config['CHAT_INTERFACE_OPTIONS'] = "[§cPanel§r]\<§a{username}§r\> §f{chatmessage}";
 $config['ADMIN_CHAT_INTERFACE_OPTIONS'] = "[§bADMIN§r] §4{username}§r§9 \(Console\)§f: §b{chatmessage}";
+
+$config['METRIC'] = true;
 ?>
