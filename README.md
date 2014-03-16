@@ -3,6 +3,22 @@
 <p>This software will require modification to work with your server setup, however the fundamentals are there for you to work with</p>
 <p>Built for the CJFreedom All Op Server @ mc.thecjgcjg.com</p>
 
+<h2>Features</h2>
+<p>
+<ul>
+<li>Simplistic Server Control Panel</li>
+<li>Features for <a href="https://github.com/TotalFreedom/TotalFreedomMod">TotalFreedomMod</a></li>
+<li>Caching</li>
+<li>Map Resets</li>
+<li>Full Console</li>
+<li>Log Viewer</li>
+<li>User Levels</li>
+<li>AES Encrypted Remember Me</li>
+<li>Chrome Notification Support</li>
+<li>Reporting Systems</li>
+</ul>
+</p>
+
 <h2>Requirements</h2>
 <p>
 <ul>
@@ -20,65 +36,7 @@
 <h2>Notes for usage</h2>
 <ul>
 <li>Although not required try using <a href="https://github.com/TheCJGCJG/MCManager">https://github.com/TheCJGCJG/MCManager</a> for simplicities sake.</li>
-<li>When passwords are saved to a client's machine it is saved in BASE64 encoding, this makes it undecodable to a glancing eye, however this is easy to interpret by machine. Passwords are transmitted with plain text so SSL is reccomended. SSL Force is a config option.</li>
-<li>You must run the following SQL commands</li>
-    <ul>
-        <li>CREATE TABLE &#96;reports&#96; (
-  &#96;ID&#96; int(11) NOT NULL AUTO_INCREMENT,
-  &#96;reporter&#96; varchar(45) DEFAULT NULL,
-  &#96;reported&#96; varchar(45) DEFAULT NULL,
-  &#96;time&#96; varchar(45) DEFAULT NULL,
-  &#96;ban_reason&#96; varchar(45) DEFAULT NULL,
-  &#96;status&#96; varchar(45) DEFAULT NULL,
-  &#96;ip&#96; varchar(45) DEFAULT NULL,
-  PRIMARY KEY (&#96;ID&#96;)
-);</li><br />
-
-<li>CREATE TABLE &#96;cjf_panel_action_log&#96; (
-  &#96;ID&#96; int(11) NOT NULL AUTO_INCREMENT,
-  &#96;username&#96; varchar(45) DEFAULT NULL,
-  &#96;ip&#96; varchar(45) DEFAULT NULL,
-  &#96;action&#96; varchar(45) DEFAULT NULL,
-  &#96;time&#96; int(45) DEFAULT NULL,
-  PRIMARY KEY (&#96;ID&#96;)
-);</li><br />
-
-<li>CREATE TABLE &#96;cjf_panel_users&#96; (
-  &#96;ID&#96; int(11) NOT NULL AUTO_INCREMENT,
-  &#96;username&#96; varchar(45) DEFAULT NULL,
-  &#96;password&#96; longtext,
-  &#96;salt&#96; varchar(128) DEFAULT NULL,
-  &#96;rank&#96; varchar(45) DEFAULT NULL,
-  PRIMARY KEY (&#96;ID&#96;)
-);</li><br />
-
-<li>CREATE TABLE &#96;cjf_panel_cache&#96; (
-  &#96;ID&#96; int(11) NOT NULL AUTO_INCREMENT,
-  &#96;cachename&#96; varchar(45) DEFAULT NULL,
-  &#96;cachevalue&#96; blob,
-  &#96;lastupdated&#96; int(11) DEFAULT NULL,
-  PRIMARY KEY (&#96;ID&#96;)
-);</li><br />
-
-<li>CREATE TABLE &#96;cjf_panel_maps&#96; (
-  &#96;ID&#96; int(11) NOT NULL AUTO_INCREMENT,
-  &#96;mapname&#96; varchar(45) DEFAULT NULL,
-  &#96;map_image_href&#96; varchar(45) DEFAULT NULL,
-  &#96;map_folder_location&#96; varchar(45) DEFAULT NULL,
-  PRIMARY KEY (&#96;ID&#96;)
-);</li><br />
-
-<li>CREATE TABLE &#96;cjf_bans&#96; (
-  &#96;ID&#96; int(11) NOT NULL AUTO_INCREMENT,
-  &#96;bannedplayer&#96; varchar(45) DEFAULT NULL,
-  &#96;adminname&#96; varchar(45) DEFAULT NULL,
-  &#96;reason&#96; varchar(65) DEFAULT NULL,
-  &#96;time&#96; int(40) DEFAULT NULL,
-  &#96;ip&#96; varchar(45) DEFAULT NULL,
-  PRIMARY KEY (&#96;ID&#96;)
-);</li><br />
-
-    </ul>
+<li>Ensure you read the <a href="https://github.com/TheCJGCJG/CJFreedom-Panel/wiki">Wiki</a>.
 </ul>
 
 <h2>Known bugs</h2>
