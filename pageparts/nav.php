@@ -64,19 +64,19 @@
                         <!-- /.nav-second-level -->
                     </li>
                     <li>
-                        <a href="banning"><i class="fa fa-table fa-fw"></i> Banning</a>
+                        <a href="banning"><i class="fa fa-exclamation-circle fa-fw"></i> Banning</a>
                     </li>
                     <?php if ($_SESSION['user']['rank'] >= 3) { ?><li>
-                        <a href="maps"><i class="fa fa-edit fa-fw"></i> Maps</a>
+                        <a href="maps"><i class="fa fa-flag fa-fw"></i> Maps</a>
                     <?php } ?></li>
                     <li>
-                        <a href="logs"><i class="fa fa-edit fa-fw"></i> Logs</a>
+                        <a href="logs"><i class="fa fa-comments fa-fw"></i> Logs</a>
                     </li>
                     <?php if ($_SESSION['user']['rank'] >= 3) { ?><li>
-                        <a href="manage"><i class="fa fa-edit fa-fw"></i> Management</a>
+                        <a href="manage"><i class="fa fa-shield fa-fw"></i> Management</a>
                     <?php } ?></li>
                     <?php if ($_SESSION['user']['rank'] >= 2) { ?><li>
-                        <a href="console"><i class="fa fa-edit fa-fw"></i> Console</a>
+                        <a href="console"><i class="fa fa-desktop fa-fw"></i> Console</a>
                    </li><?php } ?>
                 </ul>
                 <!-- /#side-menu -->
