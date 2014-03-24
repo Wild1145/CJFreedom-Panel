@@ -1,14 +1,16 @@
 <?php
 function encrypt($file, $key) {
 	$key = hash('sha512', $key);
-	$key = substr($key, 0, 32);
-    $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $key, $file, MCRYPT_MODE_ECB);
+	$key32 = substr($key, 0, 32);
+    $iv = hash('md5', $key);
+    $encrypted = mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $key32, $file, MCRYPT_MODE_CFB, $iv);
     return $encrypted;
 }
 function decrypt($file, $key) {
 	$key = hash('sha512', $key);
-	$key = substr($key, 0, 32);
-	$decrypted = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key, $file, MCRYPT_MODE_ECB);
+	$key32 = substr($key, 0, 32);
+    $iv = hash('md5', $key);
+	$decrypted = mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $key32, $file, MCRYPT_MODE_CFB, $iv);
 	return $decrypted;
 }
 function sqlQuery($query)
