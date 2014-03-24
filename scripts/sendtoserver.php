@@ -20,7 +20,7 @@ switch ($action) {
 		if (isset($_GET['instant'])) {
 			$ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_resetmap.sh instant ' . escapeshellarg($_GET['mapname']) . ' &');
 		} else {
-			$ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . '/home/CJFreedom/bin/panel_scripts/server_resetmap.sh ' . escapeshellarg($_GET['mapname']) . ' &');
+			$ssh->exec('nohup ' . $config['SCRIPTS_FOLDER'] . 'server_resetmap.sh ' . escapeshellarg($_GET['mapname']) . ' &');
 		}
         echo "Map is resetting - This may take a few moments";
         logAction("Map Reset to " . $_GET['mapname']);
