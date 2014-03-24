@@ -72,7 +72,7 @@ updateMetric();
                                 </div>
                                 <div class="checkbox">
                                     <label>
-                                        <input name="remember" id="remember" type="checkbox" value="Remember Me">Remember Me
+                                        <input name="remember" id="remember" type="checkbox" checked value="Remember Me">Remember Me
                                     </label>
                                 </div>
                                 <!-- Change this to a button or input when using this as a form -->
