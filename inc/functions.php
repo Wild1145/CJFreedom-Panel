@@ -83,7 +83,8 @@ function addUser($username, $password, $rank)
 {
     include 'config.php';
     $username = sanitize($username);
-        $salt     = rand(5, 9999999999) . rand(5, 99999999999999999999999);
+        $salt     = openssl_random_pseudo_bytes (512);
+		$salt     = hash('whirlpool', $salt);
         $username = sanitize($username);
         $rank     = sanitize($rank);
         $password = loginHash($password, $salt);
@@ -120,9 +121,10 @@ function deleteUser($username, $SESSION)
 function changePassword($SESSION ,$password)
 {
     $oldDetails  = $_SESSION['user'];
-    $salt        = $oldDetails["salt"];
+    $salt     = openssl_random_pseudo_bytes (512);
+	$salt     = hash('whirlpool', $salt);
     $newPassword = loginHash($password, $salt);
-    if (sqlQuery("UPDATE cjf_panel_users SET password='" . $newPassword . "' WHERE ID='" . $oldDetails["ID"] . "'")) {
+    if (sqlQuery("UPDATE cjf_panel_users SET password='" . $newPassword . "', salt='" . $salt . "' WHERE ID='" . $oldDetails["ID"] . "'")) {
         return 1;
     } else {
         return 0;

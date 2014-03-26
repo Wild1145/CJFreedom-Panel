@@ -14,7 +14,7 @@
                 <li class="dropdown">
                     <li class="dropdown alerts-dropdown open">
                                   <a id="alertsButton" href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell"></i> Alerts <span id="alertsNumber" class="badge">0</span> <b class="caret"></b></a>
-                                  <ul id="alertsBox" class="dropdown-menu"><li id="noAlerts"><a>No Alerts</a></li></ul>
+                                  <ul id="alertsBox" class="dropdown-menu alertsMenu"><li id="noAlerts"><a>No Alerts</a></li></ul>
                                 </li>
                     <!-- /.dropdown-alerts -->
                 </li>
