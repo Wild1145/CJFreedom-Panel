@@ -7,7 +7,7 @@
 <p>
 <ul>
 <li>Simplistic Server Control Panel</li>
-<li>Features for <a href="https://github.com/TotalFreedom/TotalFreedomMod">TotalFreedomMod</a></li>
+<li>Features for <a href="https://bitbucket.org/cjfreedomdevteam/cjfreedommod/issues?status=new&status=open">CJFreedomMod</a></li>
 <li>Caching</li>
 <li>Map Resets</li>
 <li>Full Console</li>
