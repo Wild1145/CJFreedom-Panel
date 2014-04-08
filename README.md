@@ -23,6 +23,7 @@
 <p>
 <ul>
 <li>Not suitable for Shared hosting due to resource usage and lack of extensions.</li>
+<li><a href="https://www.superior-networks.com">Superior-Networks</a> is the only shared hosting providor that has been vetted and will allow the panel to function. If you wish for shared hosting then this is one of the only hosts we can guarentee support with the panel.
 <li>Each client takes on average 30kbps of bandwidth when the panel is left open.</li>
 <li>A linux based server with SSH2 Access (SSH access is provided courtesy of http://phpseclib.sourceforge.net/)</li>
 <li>PHP 5.4 or higher.</li>
