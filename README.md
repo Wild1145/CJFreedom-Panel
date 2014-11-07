@@ -36,7 +36,7 @@
 
 <h2>Notes for usage</h2>
 <ul>
-<li>Although not required try using <a href="https://github.com/TheCJGCJG/MCManager">https://github.com/TheCJGCJG/MCManager</a> for simplicities sake.</li>
+<li>Although not required try using <a href="https://github.com/DarthCraft/MCManager">https://github.com/DarthCraft/MCManager</a> for simplicities sake.</li>
 <li>Ensure you read the <a href="https://github.com/TheCJGCJG/CJFreedom-Panel/wiki">Wiki</a>.
 </ul>
 
